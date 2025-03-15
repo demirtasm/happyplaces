@@ -1,6 +1,8 @@
 package com.example.happyplaces.adapter
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +10,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.happyplaces.R
+import com.example.happyplaces.activities.AddHappyPlacesActivity
+import com.example.happyplaces.activities.MainActivity
+import com.example.happyplaces.database.DatabaseHandler
 import com.example.happyplaces.models.HappyPlaceModel
 import de.hdodenhof.circleimageview.CircleImageView
 
@@ -33,6 +38,22 @@ open class HappyPlaceAdapter(
         return list.size
     }
 
+    fun notifyEditItem(activity: Activity, position: Int, requestCode: Int) {
+        val intent = Intent(context, AddHappyPlacesActivity::class.java)
+        intent.putExtra(MainActivity.EXTRA_PLACE_DETAILS, list[position])
+        activity.startActivityForResult(intent, requestCode)
+        notifyItemChanged(position)
+    }
+
+    fun removeAt(position: Int) {
+        val dbHandler = DatabaseHandler(context)
+        val isDelete = dbHandler.deleteHappyPlace(list[position])
+        if (isDelete > 0) {
+            list.removeAt(position)
+            notifyItemRemoved(position)
+        }
+    }
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val model = list[position]
         if (holder is MyViewHolder) {
@@ -42,7 +63,7 @@ open class HappyPlaceAdapter(
             holder.itemView.findViewById<TextView>(R.id.tvDescription).text = model.description
 
             holder.itemView.setOnClickListener {
-                if(onClickListener!= null){
+                if (onClickListener != null) {
                     onClickListener!!.onClick(position, model)
                 }
             }

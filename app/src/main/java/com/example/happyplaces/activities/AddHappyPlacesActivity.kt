@@ -45,6 +45,7 @@ class AddHappyPlacesActivity : AppCompatActivity(), View.OnClickListener {
     private var saveImageToInternalStorage: Uri? = null
     private var mLatitude: Double = 0.0
     private var mLongitude: Double = 0.0
+    private var mHappyPlaceDetails: HappyPlaceModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +59,11 @@ class AddHappyPlacesActivity : AppCompatActivity(), View.OnClickListener {
             onBackPressed()
         }
 
+        if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
+            mHappyPlaceDetails =
+                intent.getSerializableExtra(MainActivity.EXTRA_PLACE_DETAILS) as HappyPlaceModel
+        }
+
         dateSetListener = DatePickerDialog.OnDateSetListener { view, year, month, dayOfMonth ->
             cal.set(Calendar.YEAR, year)
             cal.set(Calendar.MONTH, month)
@@ -65,6 +71,22 @@ class AddHappyPlacesActivity : AppCompatActivity(), View.OnClickListener {
             updateDateInView()
         }
         updateDateInView()
+
+        if (mHappyPlaceDetails != null) {
+            supportActionBar?.title = "Edit Happy Place"
+
+            binding.etTitle.setText(mHappyPlaceDetails!!.title)
+            binding.etDescription.setText(mHappyPlaceDetails!!.description)
+            binding.etDate.setText(mHappyPlaceDetails!!.date)
+            binding.etLocation.setText(mHappyPlaceDetails!!.location)
+            mLatitude = mHappyPlaceDetails!!.latitude
+            mLongitude = mHappyPlaceDetails!!.longitude
+
+            saveImageToInternalStorage = Uri.parse(mHappyPlaceDetails!!.image)
+            binding.ivPlaceImage.setImageURI(saveImageToInternalStorage)
+            binding.btnSave.text = "UPDATE"
+        }
+
         binding.etDate.setOnClickListener(this)
         binding.tvAddImage.setOnClickListener(this)
         binding.btnSave.setOnClickListener(this)
@@ -101,14 +123,16 @@ class AddHappyPlacesActivity : AppCompatActivity(), View.OnClickListener {
             R.id.btn_save -> {
                 when {
                     binding.etTitle.text.isNullOrEmpty() -> {
-
+                        binding.etTitle.error = "please enter value"
                     }
 
                     binding.etDescription.text.isNullOrEmpty() -> {
+                        binding.etDescription.error = "please enter value"
 
                     }
 
                     binding.etLocation.text.isNullOrEmpty() -> {
+                        binding.etLocation.error = "please enter value"
 
                     }
 
@@ -118,7 +142,7 @@ class AddHappyPlacesActivity : AppCompatActivity(), View.OnClickListener {
 
                     else -> {
                         val happyPlaceModel = HappyPlaceModel(
-                            0,
+                            if (mHappyPlaceDetails == null) 0 else mHappyPlaceDetails!!.id,
                             binding.etTitle.text.toString(),
                             saveImageToInternalStorage.toString(),
                             binding.etDescription.text.toString(),
@@ -128,10 +152,18 @@ class AddHappyPlacesActivity : AppCompatActivity(), View.OnClickListener {
                             mLongitude
                         )
                         val dbHandler = DatabaseHandler(this)
-                        val addHappyPlace = dbHandler.addHappyPlace(happyPlaceModel)
-                        if(addHappyPlace > 0){
-                            setResult(Activity.RESULT_OK)
-                            finish()
+                        if (mHappyPlaceDetails == null) {
+                            val addHappyPlace = dbHandler.addHappyPlace(happyPlaceModel)
+                            if (addHappyPlace > 0) {
+                                setResult(Activity.RESULT_OK)
+                                finish()
+                            }
+                        } else {
+                            val updateHappyPlace = dbHandler.updateHappyPlace(happyPlaceModel)
+                            if (updateHappyPlace > 0) {
+                                setResult(Activity.RESULT_OK)
+                                finish()
+                            }
                         }
                     }
                 }
