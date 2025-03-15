@@ -5,7 +5,22 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activities.MainActivity">
+
+   <androidx.recyclerview.widget.RecyclerView
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+      android:id="@+id/rv_happy_places_list"
+      android:visibility="gone"/>
+
+   <TextView
+       android:id="@+id/tv_no_records_available"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+      android:gravity="center"
+      android:text="@string/note_text_no_happy_places_found_yet"
+       android:textSize="16sp"
+       android:visibility="visible"/>
 
    <com.google.android.material.floatingactionbutton.FloatingActionButton
        android:id="@+id/fabAddHappyPlace"
